@@ -10,11 +10,12 @@
 
 typedef struct	s_arg
 {
-	int		total;
-	int		die;
-	int		eat;
-	int		sleep;
-	int		max_eat;
+	int			total;
+	int			die;
+	int			eat;
+	int			sleep;
+	int			max_eat;
+	long int	start_t;
 }				t_arg;
 
 typedef struct	s_phi
@@ -59,7 +60,7 @@ int	check_args_digit(int argc, char *argv[])
 {
 	int		i;
 	int		o;
-	char	c;
+	char		c;
 
 	i = 1;
 	while (i < argc)
@@ -90,15 +91,31 @@ int	check_args(int argc, char *argv[], t_data *data)
 		data->arg.max_eat = -1;
 		if (argc == 6)
 			data->arg.max_eat = ft_atol(argv[5]);
-		// TODO maybe [max_eat] could be 0 and just print that each philo eat 0 time(s)?
 		if (data->arg.total <= 0 || data->arg.die <= 0 || data->arg.eat <= 0
-				|| data->arg.sleep <= 0
-				|| (data->arg.max_eat <= 0 && argc == 6))
+				|| data->arg.sleep <= 0)
 			return (ERR);
 	}
 	else
 		return (ERR);
 	return (OK);
+}
+
+int	init(void)
+{
+	return (OK);
+}
+
+long int	act_time(void)
+{
+	struct timeval	current_time;
+	long int	time;
+
+	time = 0;
+	if (gettimeofday(&current_time, NULL) == -1)
+		return (1);
+	time = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
+	//printf("%ld\n", time);
+	return (time);
 }
 
 int	main(int argc, char *argv[])
@@ -110,5 +127,12 @@ int	main(int argc, char *argv[])
 		printf("%s\n", ERR_MSG);
 		return (1); // ret error? ERR is 0 tho
 	}
+	if (data.arg.max_eat == 0)
+	{
+		// TODO maybe [max_eat] could be 0 and just print that each philo eat 0 time(s)?
+		printf("philos ate 0\n");
+		return (0);
+	}
+	act_time();
 	return (0);
 }
