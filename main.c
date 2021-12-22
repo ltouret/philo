@@ -20,6 +20,14 @@ typedef struct	s_arg
 
 typedef struct	s_phi
 {
+	int				nb;
+	pthread_t		th_id;
+	pthread_mutex_t	*rf;
+	pthread_mutex_t	lf;
+	t_arg			*a;
+	long int		ms_eat;
+	unsigned int	nb_eat;
+	int				done;
 }				t_phi;
 
 typedef struct	s_data
@@ -27,6 +35,19 @@ typedef struct	s_data
 	t_arg	arg;
 	t_phi	*phi;
 }				t_data;
+
+long int	act_time(void)
+{
+	struct timeval	current_time;
+	long int		time;
+
+	time = 0;
+	if (gettimeofday(&current_time, NULL) == -1)
+		return (1);
+	time = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
+	//printf("%ld\n", time);
+	return (time);
+}
 
 int	slen(char *s)
 {
@@ -100,22 +121,25 @@ int	check_args(int argc, char *argv[], t_data *data)
 	return (OK);
 }
 
-int	init(void)
+int	init(t_data *data)
 {
+	int	i;
+
+	i = 0;
+	data->arg.start_t = act_time();
+	while (i < data->arg.total)
+	{
+		// create each thread of phi here
+		data->phi[i].nb = i + 1;
+		data->phi[i].ms_eat = data->arg.start_t;
+		printf("a %d\n", data->phi[i].nb);
+		if (pthread_mutex_init(&(data->phi[i].lf), NULL))
+		{
+			return (ERR);
+		}
+		i++;
+	}
 	return (OK);
-}
-
-long int	act_time(void)
-{
-	struct timeval	current_time;
-	long int	time;
-
-	time = 0;
-	if (gettimeofday(&current_time, NULL) == -1)
-		return (1);
-	time = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-	//printf("%ld\n", time);
-	return (time);
 }
 
 int	main(int argc, char *argv[])
@@ -133,6 +157,15 @@ int	main(int argc, char *argv[])
 		printf("philos ate 0\n");
 		return (0);
 	}
-	act_time();
+	if (!(data.phi = malloc(sizeof(t_phi) * data.arg.total)))
+	{
+		// TODO malloc error heres;
+		return (0);
+	}
+	if (init(&data) == ERR) // TODO add error managment here 
+	{
+		// init error
+		return (0);
+	}
 	return (0);
 }
