@@ -6,7 +6,7 @@
 #    By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/12/16 19:31:14 by ltouret           #+#    #+#              #
-#    Updated: 2021/12/17 19:23:05 by ltouret          ###   ########.fr        #
+#    Updated: 2021/12/23 17:23:15 by ltouret          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ OBJS = ${SRCS:.c=.o}
 CC		= clang
 RM		= rm -f
 
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -pthread
 
 .c.o:
 		${CC} ${CFLAGS} -c $< -o ${<:.c=.o}

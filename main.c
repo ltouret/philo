@@ -24,7 +24,7 @@ typedef struct	s_phi
 	pthread_t		th_id;
 	pthread_mutex_t	*rf;
 	pthread_mutex_t	lf;
-	t_arg			*a;
+	t_arg			*arg;
 	long int		ms_eat;
 	unsigned int	nb_eat;
 	int				done;
@@ -121,23 +121,46 @@ int	check_args(int argc, char *argv[], t_data *data)
 	return (OK);
 }
 
+void	*th_phi(t_data *data)
+{
+	(void) data;
+	while (1)
+	{
+		break;
+	}
+	return (NULL);
+}
+
 int	init(t_data *data)
 {
 	int	i;
 
-	i = 0;
+	i = -1;
 	data->arg.start_t = act_time();
-	while (i < data->arg.total)
+	while (++i < data->arg.total)
 	{
 		// create each thread of phi here
 		data->phi[i].nb = i + 1;
 		data->phi[i].ms_eat = data->arg.start_t;
-		printf("a %d\n", data->phi[i].nb);
+		data->phi[i].nb_eat = 0;
+		data->phi[i].done = 0;
+		data->phi[i].rf = NULL;
+		//printf("a %d\n", data->phi[i].nb);
 		if (pthread_mutex_init(&(data->phi[i].lf), NULL))
-		{
 			return (ERR);
-		}
-		i++;
+		if (data->arg.total == 1)
+			return (OK);
+		if (i == data->arg.total - 1)
+			data->phi[i].rf = &data->phi[0].lf;
+		else
+			data->phi[i].rf = &data->phi[i + 1].lf;
+	}
+	i = -1;
+	while (++i < data->arg.total)
+	{
+		data->phi[i].arg = &data->arg;
+		if (pthread_create(&data->phi[i].th_id, NULL, (void *)th_phi, &data->phi[i]))
+			return (ERR);
 	}
 	return (OK);
 }
