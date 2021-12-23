@@ -49,6 +49,15 @@ long int	act_time(void)
 	return (time);
 }
 
+void		ft_usleep(long int time)
+{
+	long int	start;
+
+	start = act_time();
+	while (act_time() - start < time)
+		usleep(time / 10);
+}
+
 int	slen(char *s)
 {
 	int	i;
@@ -121,12 +130,64 @@ int	check_args(int argc, char *argv[], t_data *data)
 	return (OK);
 }
 
-void	*th_phi(t_data *data)
+//void	write_time(t_phi *phi)
+//{
+//}
+
+int		status(t_phi *phi, int mov)
 {
-	(void) data;
+	long int	time;
+	(void) phi;
+
+	time = act_time() - phi->arg->start_t;
+	if (mov == 1)
+		printf("%ld %d has taken a fork\n", time, phi->nb);
+	if (mov == 2)
+		printf("%ld %d is eating\n", time, phi->nb);
+	if (mov == 3)
+		printf("%ld %d is sleeping\n", time, phi->nb);
+	if (mov == 4)
+		printf("%ld %d is thinking\n", time, phi->nb);
+	return (OK);
+}
+
+void	*th_phi(t_phi *phi)
+{
+	// TODO add protection if only 1 philo!
 	while (1)
 	{
-		break;
+		if (phi->nb % 2)
+			pthread_mutex_lock(&phi->lf);
+		else
+			pthread_mutex_lock(phi->rf);
+		if (status(phi, 1) == ERR)
+			break;
+		if (phi->nb % 2)
+			pthread_mutex_lock(phi->rf);
+		else
+			pthread_mutex_lock(&phi->lf);
+		if (status(phi, 1) == ERR)
+			break;
+		if (status(phi, 2) == ERR)
+			break;
+		phi->nb_eat++;
+		// sleep & then eat | eat & then sleep?
+		ft_usleep(phi->arg->eat);
+		phi->ms_eat = act_time();
+		if (phi->nb % 2)
+			pthread_mutex_unlock(&phi->lf);
+		else
+			pthread_mutex_unlock(phi->rf);
+		if (phi->nb % 2)
+			pthread_mutex_unlock(phi->rf);
+		else
+			pthread_mutex_unlock(&phi->lf);
+		if (status(phi, 3) == ERR)
+			break;
+		ft_usleep(phi->arg->sleep);
+		if (status(phi, 4) == ERR)
+			break;
+		//break;
 	}
 	return (NULL);
 }
@@ -158,6 +219,7 @@ int	init(t_data *data)
 	i = -1;
 	while (++i < data->arg.total)
 	{
+		//write(1, "X\n", 2);
 		data->phi[i].arg = &data->arg;
 		if (pthread_create(&data->phi[i].th_id, NULL, (void *)th_phi, &data->phi[i]))
 			return (ERR);
@@ -168,6 +230,9 @@ int	init(t_data *data)
 int	main(int argc, char *argv[])
 {
 	t_data	data;
+	// TODO send this to phi cos needed to stop
+	int		stop = 0;
+	(void) stop;
 
 	if (check_args(argc, argv, &data) == ERR)
 	{
@@ -190,5 +255,6 @@ int	main(int argc, char *argv[])
 		// init error
 		return (0);
 	}
+	//while (1);
 	return (0);
 }
