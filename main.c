@@ -10,6 +10,7 @@
 
 typedef struct	s_arg
 {
+	//TODO rename die to death
 	int			total;
 	int			die;
 	int			eat;
@@ -26,8 +27,8 @@ typedef struct	s_phi
 	pthread_mutex_t	lf;
 	t_arg			*arg;
 	long int		ms_eat;
-	unsigned int	nb_eat;
-	int				done;
+	int				nb_eat;
+	int				*stop;
 }				t_phi;
 
 typedef struct	s_data
@@ -130,24 +131,25 @@ int	check_args(int argc, char *argv[], t_data *data)
 	return (OK);
 }
 
-//void	write_time(t_phi *phi)
-//{
-//}
-
 int		status(t_phi *phi, int mov)
 {
 	long int	time;
 	(void) phi;
 
+	if (*phi->stop > 0)
+	{
+		//write(1,"X",1);
+		return (ERR);
+	}
 	time = act_time() - phi->arg->start_t;
 	if (mov == 1)
-		printf("%ld %d has taken a fork\n", time, phi->nb);
+		printf("%ld %d has taken a fork\n", time, phi->nb + 1);
 	if (mov == 2)
-		printf("%ld %d is eating\n", time, phi->nb);
+		printf("%ld %d is eating\n", time, phi->nb + 1);
 	if (mov == 3)
-		printf("%ld %d is sleeping\n", time, phi->nb);
+		printf("%ld %d is sleeping\n", time, phi->nb + 1);
 	if (mov == 4)
-		printf("%ld %d is thinking\n", time, phi->nb);
+		printf("%ld %d is thinking\n", time, phi->nb + 1);
 	return (OK);
 }
 
@@ -156,6 +158,9 @@ void	*th_phi(t_phi *phi)
 	// TODO add protection if only 1 philo!
 	while (1)
 	{
+		// TODO first if doesnt solve in case philo eats multiple times mroe and dies cos he cant eat cos blocked by this if!!!
+		if (phi->arg->max_eat != -1 && phi->nb_eat >= phi->arg->max_eat)
+			continue;
 		if (phi->nb % 2)
 			pthread_mutex_lock(&phi->lf);
 		else
@@ -174,14 +179,15 @@ void	*th_phi(t_phi *phi)
 		// sleep & then eat | eat & then sleep?
 		ft_usleep(phi->arg->eat);
 		phi->ms_eat = act_time();
-		if (phi->nb % 2)
-			pthread_mutex_unlock(&phi->lf);
-		else
-			pthread_mutex_unlock(phi->rf);
+		printf("phi %d ate at %ld dies at %ld\n", phi->nb + 1, phi->ms_eat - phi->arg->start_t, phi->ms_eat - phi->arg->start_t + phi->arg->die);
 		if (phi->nb % 2)
 			pthread_mutex_unlock(phi->rf);
 		else
 			pthread_mutex_unlock(&phi->lf);
+		if (phi->nb % 2)
+			pthread_mutex_unlock(&phi->lf);
+		else
+			pthread_mutex_unlock(phi->rf);
 		if (status(phi, 3) == ERR)
 			break;
 		ft_usleep(phi->arg->sleep);
@@ -192,27 +198,30 @@ void	*th_phi(t_phi *phi)
 	return (NULL);
 }
 
-int	init(t_data *data)
+int	init(t_data *data, int *stop)
 {
 	int	i;
 
 	i = -1;
 	data->arg.start_t = act_time();
+	//data->arg.done = 0;
 	while (++i < data->arg.total)
 	{
 		// create each thread of phi here
-		data->phi[i].nb = i + 1;
+		data->phi[i].nb = i ;
 		data->phi[i].ms_eat = data->arg.start_t;
 		data->phi[i].nb_eat = 0;
-		data->phi[i].done = 0;
 		data->phi[i].rf = NULL;
+		data->phi[i].stop = stop;
 		//printf("a %d\n", data->phi[i].nb);
 		if (pthread_mutex_init(&(data->phi[i].lf), NULL))
 			return (ERR);
 		if (data->arg.total == 1)
 			return (OK);
 		if (i == data->arg.total - 1)
+		{
 			data->phi[i].rf = &data->phi[0].lf;
+		}
 		else
 			data->phi[i].rf = &data->phi[i + 1].lf;
 	}
@@ -223,6 +232,43 @@ int	init(t_data *data)
 		data->phi[i].arg = &data->arg;
 		if (pthread_create(&data->phi[i].th_id, NULL, (void *)th_phi, &data->phi[i]))
 			return (ERR);
+	}
+	return (OK);
+}
+
+int		phy_loop(t_data *data)
+{
+	int			i;
+	long int	time;
+
+	i = 0;
+	time = act_time();
+	while (i < data->arg.total)
+	{
+		//printf("%ld\n", time - data->phi[i].ms_eat);
+		if (time - data->phi[i].ms_eat >= data->arg.die)
+		{
+			printf("%ld %d has died\n", time - data->arg.start_t, data->phi[i].nb + 1);
+			*data->phi[0].stop = 1;
+			return (ERR);
+		}
+		i++;
+	}
+	if (data->arg.max_eat != -1)
+	{
+		i = 0;
+		while (i < data->arg.total)
+		{
+			if (data->phi[i].nb_eat < data->arg.max_eat)
+				break;
+			i++;
+		}
+		if (i == data->arg.total)
+		{
+			printf("done eatiiin\n");
+			*data->phi[0].stop = 2;
+			return (ERR);
+		}
 	}
 	return (OK);
 }
@@ -250,11 +296,14 @@ int	main(int argc, char *argv[])
 		// TODO malloc error heres;
 		return (0);
 	}
-	if (init(&data) == ERR) // TODO add error managment here 
+	if (init(&data, &stop) == ERR) // TODO add error managment here 
 	{
 		// init error
 		return (0);
 	}
+	while (phy_loop(&data) == OK);
+	//usleep(100000);
+	*data.phi[0].stop = 1;
 	//while (1);
 	return (0);
 }
