@@ -46,7 +46,6 @@ long int	act_time(void)
 	if (gettimeofday(&current_time, NULL) == -1)
 		return (1);
 	time = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-	//printf("%ld\n", time);
 	return (time);
 }
 
@@ -134,13 +133,9 @@ int	check_args(int argc, char *argv[], t_data *data)
 int		status(t_phi *phi, int mov)
 {
 	long int	time;
-	(void) phi;
 
 	if (*phi->stop > 0)
-	{
-		//write(1,"X",1);
 		return (ERR);
-	}
 	time = act_time() - phi->arg->start_t;
 	if (mov == 1)
 		printf("%ld %d has taken a fork\n", time, phi->nb + 1);
@@ -156,21 +151,17 @@ int		status(t_phi *phi, int mov)
 void	*th_phi(t_phi *phi)
 {
 	// TODO add protection if only 1 philo!
+	if (phi->nb % 2 == 1)
+		ft_usleep(phi->arg->eat / 10);
 	while (1)
 	{
 		// TODO first if doesnt solve in case philo eats multiple times mroe and dies cos he cant eat cos blocked by this if!!!
 		if (phi->arg->max_eat != -1 && phi->nb_eat >= phi->arg->max_eat)
 			continue;
-		if (phi->nb % 2)
-			pthread_mutex_lock(&phi->lf);
-		else
-			pthread_mutex_lock(phi->rf);
+		pthread_mutex_lock(&phi->lf);
 		if (status(phi, 1) == ERR)
 			break;
-		if (phi->nb % 2)
-			pthread_mutex_lock(phi->rf);
-		else
-			pthread_mutex_lock(&phi->lf);
+		pthread_mutex_lock(phi->rf);
 		if (status(phi, 1) == ERR)
 			break;
 		if (status(phi, 2) == ERR)
@@ -179,21 +170,15 @@ void	*th_phi(t_phi *phi)
 		// sleep & then eat | eat & then sleep?
 		ft_usleep(phi->arg->eat);
 		phi->ms_eat = act_time();
-		printf("phi %d ate at %ld dies at %ld\n", phi->nb + 1, phi->ms_eat - phi->arg->start_t, phi->ms_eat - phi->arg->start_t + phi->arg->die);
-		if (phi->nb % 2)
-			pthread_mutex_unlock(phi->rf);
-		else
-			pthread_mutex_unlock(&phi->lf);
-		if (phi->nb % 2)
-			pthread_mutex_unlock(&phi->lf);
-		else
-			pthread_mutex_unlock(phi->rf);
+		//printf("phi %d ate at %ld dies at %ld\n", phi->nb + 1, phi->ms_eat - phi->arg->start_t, phi->ms_eat - phi->arg->start_t + phi->arg->die);
+		//TODO this should break my print status
+		pthread_mutex_unlock(phi->rf);
+		pthread_mutex_unlock(&phi->lf);
 		if (status(phi, 3) == ERR)
 			break;
 		ft_usleep(phi->arg->sleep);
 		if (status(phi, 4) == ERR)
 			break;
-		//break;
 	}
 	return (NULL);
 }
@@ -219,9 +204,7 @@ int	init(t_data *data, int *stop)
 		if (data->arg.total == 1)
 			return (OK);
 		if (i == data->arg.total - 1)
-		{
 			data->phi[i].rf = &data->phi[0].lf;
-		}
 		else
 			data->phi[i].rf = &data->phi[i + 1].lf;
 	}
@@ -265,7 +248,8 @@ int		phy_loop(t_data *data)
 		}
 		if (i == data->arg.total)
 		{
-			printf("done eatiiin\n");
+			// TODO print this only at the end of the program only if no deaths?
+			//printf("done eatiiin\n");
 			*data->phi[0].stop = 2;
 			return (ERR);
 		}
@@ -276,9 +260,8 @@ int		phy_loop(t_data *data)
 int	main(int argc, char *argv[])
 {
 	t_data	data;
-	// TODO send this to phi cos needed to stop
 	int		stop = 0;
-	(void) stop;
+	// TODO send this to phi cos needed to stop
 
 	if (check_args(argc, argv, &data) == ERR)
 	{
@@ -302,8 +285,10 @@ int	main(int argc, char *argv[])
 		return (0);
 	}
 	while (phy_loop(&data) == OK);
-	//usleep(100000);
-	*data.phi[0].stop = 1;
+	usleep(100000);
+	//*data.phi[0].stop = 1;
+	if (*data.phi[0].stop == 2)
+		printf("done eatiiin %d time(s)\n", data.arg.max_eat);
 	//while (1);
 	return (0);
 }
