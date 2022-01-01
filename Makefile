@@ -6,13 +6,13 @@
 #    By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/12/16 19:31:14 by ltouret           #+#    #+#              #
-#    Updated: 2021/12/23 17:23:15 by ltouret          ###   ########.fr        #
+#    Updated: 2022/01/01 16:59:24 by ltouret          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = philo
 
-SRCS = main.c
+SRCS = main.c utils1.c init.c
 
 OBJS = ${SRCS:.c=.o}
 
