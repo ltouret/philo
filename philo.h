@@ -6,7 +6,7 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/01 16:48:48 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/02 18:40:46 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/02 18:55:54 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,9 @@ long int	act_time(void);
 void		ft_usleep(long int time);
 int			slen(char *s);
 long		ft_atol(char *s);
-int			check_args_digit(int argc, char *argv[]);
+int			print_exit(char *s, int err);
 int			check_args(int argc, char *argv[], t_data *data);
+int			init(t_data *data, int *stop);
+void		*th_phi(t_phi *phi);
 
 #endif

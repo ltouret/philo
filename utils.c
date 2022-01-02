@@ -6,7 +6,7 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/01 16:45:40 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/01 16:45:42 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/02 18:50:27 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,4 +60,11 @@ long	ft_atol(char *s)
 		i++;
 	}
 	return (num);
+}
+
+int	print_exit(char *s, int err)
+{
+	if (s)
+		printf("%s\n", s);
+	return (err);
 }

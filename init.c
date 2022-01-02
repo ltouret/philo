@@ -6,13 +6,13 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/01 16:59:09 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/01 17:00:27 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/02 18:52:42 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	check_args_digit(int argc, char *argv[])
+static int	check_args_digit(int argc, char *argv[])
 {
 	int		i;
 	int		o;
@@ -52,6 +52,48 @@ int	check_args(int argc, char *argv[], t_data *data)
 			return (ERR);
 	}
 	else
+		return (ERR);
+	return (OK);
+}
+
+static int	create_thread(t_data *data)
+{
+	int	i;
+
+	i = -1;
+	while (++i < data->arg.total)
+	{
+		if (pthread_create(&data->phi[i].th_id,
+				NULL, (void *)th_phi, &data->phi[i]))
+			return (ERR);
+	}
+	return (OK);
+}
+
+int	init(t_data *data, int *stop)
+{
+	int	i;
+
+	i = -1;
+	data->arg.start_t = act_time();
+	while (++i < data->arg.total)
+	{
+		data->phi[i].nb = i ;
+		data->phi[i].ms_eat = data->arg.start_t;
+		data->phi[i].nb_eat = 0;
+		data->phi[i].rf = NULL;
+		data->phi[i].stop = stop;
+		data->phi[i].arg = &data->arg;
+		if (pthread_mutex_init(&(data->phi[i].lf), NULL))
+			return (ERR);
+		if (data->arg.total == 1)
+			return (OK);
+		if (i == data->arg.total - 1)
+			data->phi[i].rf = &data->phi[0].lf;
+		else
+			data->phi[i].rf = &data->phi[i + 1].lf;
+	}
+	if (create_thread(data) == ERR)
 		return (ERR);
 	return (OK);
 }
