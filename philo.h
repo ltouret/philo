@@ -6,7 +6,7 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/01 16:48:48 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/01 17:00:43 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/02 18:40:46 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,10 @@
 # include <pthread.h>
 # include <sys/time.h>
 
-# define ERR_MSG "Error : Invalid Arguments"
+# define ERR_ARG "Error : Invalid Arguments"
+# define ERR_MAL "Error : Malloc"
+# define ERR_INI "Error : Init"
+# define ATE_ZERO "Done eating 0 meal(s)"
 # define ERR 0
 # define OK 1
 
