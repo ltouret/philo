@@ -6,7 +6,7 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/02 18:57:47 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/02 18:58:57 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/03 17:57:44 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ static int	phi_loop(t_data *data)
 		if (time - data->phi[i].ms_eat >= data->arg.die)
 		{
 			*data->phi[0].stop = 1;
+			pthread_mutex_unlock(&data->phi[i].lf);
 			printf("%ld %d died\n",
 				time - data->arg.start_t, data->phi[i].nb + 1);
 			return (ERR);
@@ -55,6 +56,21 @@ static int	phi_loop(t_data *data)
 	if (phi_loop2(data) == ERR)
 		return (ERR);
 	return (OK);
+}
+
+void	free_me(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->arg.total)
+	{
+		pthread_join(data->phi[i].th_id, NULL);
+		pthread_mutex_destroy(&data->phi[i].lf);
+		i++;
+	}
+	if (data->phi)
+		free(data->phi);
 }
 
 int	main(int argc, char *argv[])
@@ -77,5 +93,6 @@ int	main(int argc, char *argv[])
 	usleep(100000);
 	if (*data.phi[0].stop == 2)
 		printf("Done eating %d meal(s)\n", data.arg.max_eat);
+	free_me(&data);
 	return (0);
 }

@@ -3,7 +3,8 @@ philo
 socra/
 pp/
 smiley/
-t*
+philo_one/
+#t*
 *.swp
 
 # Prerequisites

@@ -6,7 +6,7 @@
 /*   By: ltouret <ltouret@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/01 16:59:09 by ltouret           #+#    #+#             */
-/*   Updated: 2022/01/02 18:52:42 by ltouret          ###   ########.fr       */
+/*   Updated: 2022/01/03 17:06:39 by ltouret          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ static int	create_thread(t_data *data)
 	while (++i < data->arg.total)
 	{
 		if (pthread_create(&data->phi[i].th_id,
-				NULL, (void *)th_phi, &data->phi[i]))
+				NULL, (void *)th_phi, &data->phi[i]) != 0)
 			return (ERR);
 	}
 	return (OK);
